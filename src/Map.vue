@@ -5,7 +5,7 @@
 </template>
 
 <script>
-    
+    import { mapState } from 'vuex';
     export default {
         name: 'MapWindow',
         components: {
@@ -14,17 +14,34 @@
             return {
                 frameAdd: require('./map.html'),
                 mp: null,
+                geoloc: null
             }
         },
-        computed: {
+        computed: mapState([
+            'postboxes', 'panorama', 'detail'
+        ])
+            /* {
             postboxes: function () {
                 return this.$store.state.postboxes;
+            },
+            panorama: function () {
+                return this.$store.state.panorama;
+            },
+            detail: function () {
+                return this.$store.state.detail;
             }        
-        },
+        }*/ ,
         watch: {
             postboxes: function (newPostboxes, oldPostboxes) {
                 this.mp.removeMarkers();
                 this.mp.addMarkers(newPostboxes);
+            },
+            panorama: function(newP, oldP) {
+                if(newP) {
+                    this.mp.showPanorama(this.detail.lat, this.detail.lon)
+                } else {
+                    this.mp.hidePanorama();
+                }
             }
         },
         methods: {
@@ -64,7 +81,11 @@
             mapLoadCheck: { time: 100, autostart: true, immediate: true, repeat: true }
         },
         created() {
-
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    this.geoloc = { lat: position.coords.latitude, lon: position.coords.longitude };
+                });
+            }
         },
         mounted() {
          }

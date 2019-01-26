@@ -53,6 +53,9 @@ export default new Vuex.Store({
       },
       detail(state, payload) {
           state.detail = payload.detail;
+      },
+      panorama(state, payload) {
+          state.panorama = payload.panorama;
       }
     },
     actions: {
@@ -83,6 +86,11 @@ export default new Vuex.Store({
             }, response => {
                 console.log('error occured!' + JSON.stringify(response));
             });
+        },
+
+        showPanorama(context, payload) {
+            var h = payload.hide;
+            context.commit({ type: 'panorama', panorama: !h });
         }
     }
   });

@@ -27,10 +27,10 @@
   </v-navigation-drawer>
   <v-content>
     <v-container>
-      <Map v-on:show-postbox="showDetail" />
+      <Map />
     </v-container>
   </v-content>
-  <v-footer app>Bleble</v-footer>
+  <v-footer app><a href="https://nastojte.cz"/>Adam Kučera</a>, 2019</v-footer>
    </v-app> 
   </div>
 </template>

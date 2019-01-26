@@ -91,7 +91,9 @@
 
         },
         methods: {
-            
+            showPhoto () {
+                this.$store.dispatch({type: 'showPanorama' });
+            }
         },
         timers: {
         },
