@@ -11,30 +11,52 @@
 
     <script src="https://api.mapy.cz/loader.js"></script>
     <script>
-        Loader.load(null, {suggest: true});
+        Loader.load(null, {suggest: true, pano: true});
     </script>
 </head>
 
 <body style="padding:0px; margin:0px;">
+    <div id="panorama" style="width:100%; height:500px; border:0px; padding:0px; margin:0px; display:none;"></div>
     <div id="map" style="width:100%; height:500px; border:0px; padding:0px; margin:0px;"></div>
     <script>
         var MapProxy = {
             map: null,
             markerLayer: null,
+            panoramaScene: null,
+            zoom: 14,
+            locMarkerOptions: {
+                url: SMap.CONFIG.img+"/marker/drop-blue.png"
+            },
+            postboxMarkerOptions: {}, 
 
-            click: function (loc) {
-                if (this.clickHandler) {
-                    this.clickHandler(loc);
+            mapClick: function (signal) {
+                var event = signal.data.event;
+                var coords = SMap.Coords.fromEvent(event, this.MapProxy.map);
+                if (this.MapProxy.clickHandler) {
+                    this.clickHandler(coords);
                 }
             },
-            changeExtent: function (extent) {
-                if (this.extentHandler) {
-                    this.extentHandler(extent);
+            getExtent: function() {
+                var vp = this.map.getViewport();
+                //console.log(map.getZoom());
+                return {
+                    lon: { min: Math.min(vp.lbx, vp.rtx), max: Math.max(vp.lbx, vp.rtx) },
+                    lat: { min: Math.min(vp.lby, vp.rty), max: Math.max(vp.lby, vp.rty) },
+                };
+            },
+            changeExtent: function () {
+                if (this.MapProxy.extentHandler) {
+                    this.MapProxy.extentHandler(this.MapProxy.getExtent());
                 }
             },
-            markerClick: function (id) {
-                if (this.markerClickHandler) {
-                    this.markerClickHandler(id);
+            markerClick: function (signal) {
+                var marker = signal.target;
+                var id = marker.getId();
+                if(id == 'userLoc') {
+                    return;
+                }
+                if (this.MapProxy.markerClickHandler) {
+                    this.MapProxy.markerClickHandler(id);
                 }
             },
 
@@ -43,12 +65,44 @@
             },
 
             addMarkers: function(markers) {
+                var t = this;
                 markers.forEach(m => {
-                    this.markerLayer.addMarker(new SMap.Marker(SMap.Coords.fromWGS84(m.lon, m.lat), m.id, {}));
+                    t.markerLayer.addMarker(new SMap.Marker(SMap.Coords.fromWGS84(m.lon, m.lat), m.id, t.postboxMarkerOptions));
                 });
             },
 
-            /*
+            setExtent: function(loc) {
+                var center = SMap.Coords.fromWGS84(loc.lon, loc.lat);
+                this.map.setCenterZoom(center, this.zoom);
+            },
+
+            showPanorama: function(loc) {
+                return new Promise(function(resolve) {
+                document.querySelector('#map').style.display = 'none';
+                var el = document.querySelector('#panorama');
+                el.style.display = 'block';
+                if(!this.panoramaScene) {
+                    this.panoramaScene = new SMap.Pano.Scene(el);
+                }
+                // kolem teto pozice chceme nejblizsi panorama
+                var position = SMap.Coords.fromWGS84(loc.lon, loc.lat);
+                var t = this;
+                SMap.Pano.getBest(position, 50).then(function(place) {
+                    t.panoramaScene.show(place);
+                    resolve(true);
+                }, function() {
+                    resolve(false);
+                });
+            });
+            },
+
+            hidePanorama: function() {
+                document.querySelector('#map').style.display = 'block';
+                var el = document.querySelector('#panorama');
+                el.style.display = 'none';
+            },
+
+            
             activateSuggest(el) {
                 var suggest = new SMap.Suggest(el);
                 suggest.map(this.map);
@@ -59,54 +113,44 @@
                     console.log("suggest closed");
                 });
             },
-            */
+            
             clickHandler: null,
             extentHandler: null,
             markerClickHandler: null,
+
+            loadMap: function(loc) {
+                // default is Prague
+                var center = SMap.Coords.fromWGS84(14.41, 50.08);
+                var zoom = 10;
+                if(loc) {
+                    center = SMap.Coords.fromWGS84(loc.lon, loc.lat);
+                    zoom = this.zoom;
+                }
+                this.map = new SMap(JAK.gel("map"), center, zoom);
+                this.map.addDefaultControls();
+                var mouse = new SMap.Control.Mouse(SMap.MOUSE_PAN | SMap.MOUSE_WHEEL | SMap.MOUSE_ZOOM);
+                this.map.addControl(mouse); 
+                this.map.addDefaultLayer(SMap.DEF_BASE).enable();
+                this.markerLayer = new SMap.Layer.Marker();
+                this.map.addLayer(this.markerLayer);
+                this.markerLayer.enable();
+                /*
+                if(loc) {
+                    this.markerLayer.addMarker(new SMap.Marker(center, "userLoc", this.locMarkerOptions));
+                }
+                */
+                var sync = new SMap.Control.Sync({bottomSpace:0});
+                this.map.addControl(sync);
+                var signals = this.map.getSignals();
+                signals.addListener(window, "map-click", this.mapClick);
+                signals.addListener(window, "marker-click", this.markerClick);
+                signals.addListener(window, "map-redraw", this.changeExtent);
+                if (this.extentHandler) {
+                    this.extentHandler(this.getExtent());
+                }
+            }
         };
         document.MapProxy = MapProxy;
-        var center = SMap.Coords.fromWGS84(14.41, 50.08);
-        var map = new SMap(JAK.gel("map"), center, 10);
-        
-        MapProxy.map = map;
-        map.addDefaultControls();
-        var mouse = new SMap.Control.Mouse(SMap.MOUSE_PAN | SMap.MOUSE_WHEEL | SMap.MOUSE_ZOOM);
-        map.addControl(mouse); 
-        map.addDefaultLayer(SMap.DEF_BASE).enable();
-        var layer = new SMap.Layer.Marker();
-        map.addLayer(layer);
-        layer.enable();
-        MapProxy.markerLayer = layer;
-
-        var sync = new SMap.Control.Sync({bottomSpace:30});
-        map.addControl(sync);
-
-        var mapClick = function (signal) {
-            var event = signal.data.event;
-            var coords = SMap.Coords.fromEvent(event, map);
-            MapProxy.click(coords);
-        }
-
-        var markerClick = function(signal) {
-            // vybrany marker
-            var marker = signal.target;
-            var id = marker.getId();
-            MapProxy.markerClick(id);
-        }
-
-        var mapRedraw = function(signal) {
-            var vp = map.getViewport();
-            //console.log(map.getZoom());
-            MapProxy.changeExtent({
-                lon: { min: Math.min(vp.lbx, vp.rtx), max: Math.max(vp.lbx, vp.rtx) },
-                lat: { min: Math.min(vp.lby, vp.rty), max: Math.max(vp.lby, vp.rty) },
-            });
-        }
-
-        var signals = map.getSignals();
-        signals.addListener(window, "map-click", mapClick);
-        signals.addListener(window, "marker-click", markerClick);
-        signals.addListener(window, "map-redraw", mapRedraw);
     </script>
 </body>
 

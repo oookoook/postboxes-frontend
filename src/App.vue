@@ -1,7 +1,13 @@
 <template>
   <div id="app">
 <v-app>
-  <v-toolbar app clipped-right clipped-left fixed dark>
+  <v-navigation-drawer fixed clipped v-model="drawer" width="350" app>
+      <iframe id="ads" :src="addsUrl" />
+  </v-navigation-drawer>
+  <v-navigation-drawer fixed clipped right app>
+      <detail></detail>
+  </v-navigation-drawer>
+  <v-toolbar app clipped-right clipped-left fixed dark color="primary">
        
         
       <v-toolbar-title style="width: 400px" class="ml-0 pl-3">
@@ -17,20 +23,22 @@
         id="search"
       ></v-text-field>
       <v-spacer></v-spacer>
-      
+      <About />
   </v-toolbar>
-  <v-navigation-drawer fixed clipped v-model="drawer" width="350" app>
-      <iframe id="ads" :src="addsUrl" />
-  </v-navigation-drawer>
-  <v-navigation-drawer fixed clipped right app>
-      <detail></detail>
-  </v-navigation-drawer>
-  <v-content>
-    <v-container>
+  <v-content fluid>
+    <v-container pa-0 fluid fill-height>
+      <v-layout fill-height column>
       <Map />
+      </v-layout>
     </v-container>
   </v-content>
-  <v-footer app><a href="https://nastojte.cz"/>Adam Kučera</a>, 2019</v-footer>
+  <v-footer app color="secondary">
+      <v-layout justify-center row wrap>
+        <v-flex secondary pa-2 text-xs-center xs12>
+            &copy;2019, <a href="https://nastojte.cz">Adam Kučera</a>
+        </v-flex>
+      </v-layout>
+    </v-footer>
    </v-app> 
   </div>
 </template>
@@ -38,11 +46,13 @@
 <script>
     import Map from './Map.vue';
     import Detail from './Detail.vue';
+    import About from './About.vue';
     export default {
         name: 'postboxes-frontend',
         components: {
             Map,
-            Detail
+            Detail,
+            About
         },
         data: function () {
             return {

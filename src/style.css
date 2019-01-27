@@ -1,4 +1,13 @@
-div#mapDiv {
-    width:100%;
-    height:900px;
+ul.smap-suggest {
+    color: black;
+    position: relative;
+    margin-top: 200px;
+    margin-left: -100%;
+    width:50%;
+    display:block;
 }
+/*
+ul.smap-suggest li.item span.text strong {
+    display:block;
+}
+*/

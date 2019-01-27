@@ -1,8 +1,9 @@
 <template>
-  <v-list two-lines v-if="detail">
+    <v-scroll-x-transition mode="out-in">
+        <v-list two-lines v-if="detail" :key="detail.id">
           <v-list-tile>
             <v-list-tile-action>
-              <v-icon>location_on</v-icon>
+              <v-icon color="accent">location_on</v-icon>
             </v-list-tile-action>
 
             <v-list-tile-content>
@@ -11,13 +12,24 @@
             </v-list-tile-content>
 
             <v-list-tile-action @click="showPhoto">
-              <v-btn icon><v-icon>photo_camera</v-icon></v-btn>
+              <v-btn icon><v-icon color="accent">photo_camera</v-icon></v-btn>
             </v-list-tile-action>
+          </v-list-tile>
+
+          <v-list-tile v-if="desc">
+            <v-list-tile-action>
+              <v-icon color="accent">help_outline</v-icon>
+            </v-list-tile-action>
+
+            <v-list-tile-content>
+              <v-list-tile-sub-title>Upřesnění:</v-list-tile-sub-title>
+              <v-list-tile-title>{{ desc }}</v-list-tile-title>
+            </v-list-tile-content>
           </v-list-tile>
 
           <v-list-tile v-for="(item, index) in schedules" :key="index">
             <v-list-tile-action>
-              <v-icon v-if="index == 0">schedule</v-icon>
+              <v-icon color="accent" v-if="index == 0">schedule</v-icon>
             </v-list-tile-action>
 
             <v-list-tile-content>
@@ -31,7 +43,7 @@
 
           <v-list-tile>
             <v-list-tile-action>
-              <v-icon>mail</v-icon>
+              <v-icon color="accent">mail</v-icon>
             </v-list-tile-action>
 
             <v-list-tile-content>
@@ -52,6 +64,7 @@
 
           <v-divider inset></v-divider>
         </v-list>
+        </v-scroll-x-transition>
 </template>
 
 <script>
@@ -87,6 +100,9 @@
                     name: this.detail.info.zkrnaz_posty,
                     zip: this.detail.info.psc
                 }
+            },
+            desc () {
+                return this.detail.info.misto_popis == '?' ? null : this.detail.info.misto_popis
             }
 
         },

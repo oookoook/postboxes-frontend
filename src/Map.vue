@@ -1,7 +1,9 @@
 <template>
-  <div id="mapWindow">
+  <v-flex grow id="mapWindow" xs12 d-flex child-flex p-0 m-0>
+      <v-btn color="accent" dark small absolute top right fab v-if="panorama" @click="hidePanorama"><v-icon>close</v-icon></v-btn>
       <iframe v-bind:src="frameAdd" id="mapFrame"/>
-  </div>
+      <v-progress-linear :indeterminate="true" height="2" v-if="loading"></v-progress-linear>
+  </v-flex>
 </template>
 
 <script>
@@ -18,27 +20,17 @@
             }
         },
         computed: mapState([
-            'postboxes', 'panorama', 'detail'
-        ])
-            /* {
-            postboxes: function () {
-                return this.$store.state.postboxes;
-            },
-            panorama: function () {
-                return this.$store.state.panorama;
-            },
-            detail: function () {
-                return this.$store.state.detail;
-            }        
-        }*/ ,
+            'postboxes', 'panorama', 'detail', 'loading'
+        ]),
         watch: {
             postboxes: function (newPostboxes, oldPostboxes) {
                 this.mp.removeMarkers();
                 this.mp.addMarkers(newPostboxes);
+                this.$store.dispatch({type: 'endLoading' });
             },
             panorama: function(newP, oldP) {
                 if(newP) {
-                    this.mp.showPanorama(this.detail.lat, this.detail.lon)
+                    this.mp.showPanorama({ lat: this.detail.lat, lon: this.detail.lon});
                 } else {
                     this.mp.hidePanorama();
                 }
@@ -64,7 +56,9 @@
                    this.mp = mapDoc.MapProxy;
                    this.mp.extentHandler = this.getPostboxes;
                    this.mp.markerClickHandler = this.getInfo;
-                   //this.mp.activateSuggest(document.querySelector('#search'));
+                   this.mp.activateSuggest(document.querySelector('#search'));
+                   this.mp.postboxMarkerOptions = { url: require('../assets/postbox_icon.svg')};
+                   this.mp.loadMap(this.geoloc);
                    console.log('Map handlers mapped to vue methods');
                    
                 } else {
@@ -75,6 +69,9 @@
                     console.log(mapDoc.readyState);
                     */
                 }
+            },
+            hidePanorama() {
+                this.$store.dispatch({type: 'showPanorama', hide: true });
             }
         },
         timers: {
@@ -83,7 +80,12 @@
         created() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
-                    this.geoloc = { lat: position.coords.latitude, lon: position.coords.longitude };
+                    var loc = { lat: position.coords.latitude, lon: position.coords.longitude };
+                    if(!this.mp) {
+                        this.geoloc = loc;
+                    } else {
+                        this.mp.setExtent(loc);
+                    }
                 });
             }
         },
@@ -93,17 +95,9 @@
 </script>
 <style scoped>
 #mapFrame {
-    width: 100%;
-    height: 570px;
+    flex: 1 1 auto;
     border: 0px;
     padding: 0px;
     margin: 0px;
 }
-
-#mapWindow {
-    border: 0px;
-    padding: 0px;
-    margin: 0px;
-}
-
 </style>

@@ -42,6 +42,7 @@ export default new Vuex.Store({
       extent: { lat: { min: 0, max: 0}, lon: { min: 0, max: 0}},
       postboxes: [],
       detail: null,
+      panorama: false
     },
     mutations: {
       postboxes(state, payload) {
@@ -56,6 +57,9 @@ export default new Vuex.Store({
       },
       panorama(state, payload) {
           state.panorama = payload.panorama;
+      },
+      loading(state, payload) {
+          state.loading = payload.loading;
       }
     },
     actions: {
@@ -63,12 +67,14 @@ export default new Vuex.Store({
             //console.log(`Lat diff: ${payload.extent.lat.max - payload.extent.lat.min} Lon diff: ${payload.extent.lon.max - payload.extent.lon.min}`);
             var e = getNewExtent(payload.extent, context.state.extent);
             if(e && e.action && e.action == 'refresh') {
+                context.commit({ type: 'loading', loading: true });
                 Vue.http.get(`https://ygytf5wc4e.execute-api.eu-central-1.amazonaws.com/latest/query/${e.lat.min}/${e.lat.max}/${e.lon.min}/${e.lon.max}/0`)
                 .then(response => {
                     context.commit({ type: 'postboxes', postboxes: response.body });
                     context.commit({ type: 'extent', extent: e });
                 }, response => {
                     console.log('error occured!' + JSON.stringify(response));
+                    context.commit({ type: 'loading', loading: false });
                 });
             } else if(e.action == 'delete'){
                 // erase existing postboxes when zoomed out
@@ -91,6 +97,9 @@ export default new Vuex.Store({
         showPanorama(context, payload) {
             var h = payload.hide;
             context.commit({ type: 'panorama', panorama: !h });
+        },
+        endLoading(context, payload) {
+            context.commit({ type: 'loading', loading: false });
         }
     }
   });
