@@ -20,7 +20,7 @@
             }
         },
         computed: mapState([
-            'postboxes', 'panorama', 'detail', 'loading'
+            'postboxes', 'panorama', 'detail', 'loading', 'loc'
         ]),
         watch: {
             postboxes: function (newPostboxes, oldPostboxes) {
@@ -33,6 +33,13 @@
                     this.mp.showPanorama({ lat: this.detail.lat, lon: this.detail.lon});
                 } else {
                     this.mp.hidePanorama();
+                }
+            },
+            loc: function(loc) {
+                if(loc) {
+                    this.mp.setExtent(loc, true);
+                } else {
+                    this.mp.removeLocMarker();
                 }
             }
         },
@@ -52,11 +59,9 @@
                 var mapDoc = (iframe.contentWindow.document || iframe.contentDocument);
                 if(mapDoc.location.href.indexOf(this.frameAdd) > -1 && mapDoc.readyState  == 'complete' ) {
                    this.$timer.stop('mapLoadCheck');
-                   //mapDoc.MapProxy.clickHandler = this.showResults;
                    this.mp = mapDoc.MapProxy;
                    this.mp.extentHandler = this.getPostboxes;
                    this.mp.markerClickHandler = this.getInfo;
-                   this.mp.activateSuggest(document.querySelector('#search'));
                    this.mp.postboxMarkerOptions = { url: require('../assets/postbox_icon.svg')};
                    this.mp.loadMap(this.geoloc);
                    console.log('Map handlers mapped to vue methods');

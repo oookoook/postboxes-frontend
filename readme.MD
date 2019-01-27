@@ -1,4 +1,3 @@
-# Notes
+# About
 
-<http://blog.pixelastic.com/2017/09/12/importing-iframe-with-webpack-and-vue-js/>
-<https://itnext.io/vue-js-and-webpack-4-from-scratch-part-2-5038cc9deffb>
+The frontend code for the <https://schranky.nastojte.cz> app. Check out also the other repos: [postboxes-parser](https://github.com/oookoook/postboxes-parser) and [postboxes-api](https://github.com/oookoook/postboxes-api).

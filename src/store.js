@@ -41,13 +41,15 @@ export default new Vuex.Store({
     state: {
       extent: { lat: { min: 0, max: 0}, lon: { min: 0, max: 0}},
       postboxes: [],
+      mapSuggest: [],
+      loc: null,
       detail: null,
       panorama: false
     },
     mutations: {
       postboxes(state, payload) {
         state.postboxes = payload.postboxes;
-        console.dir(payload.postboxes);
+        //console.dir(payload.postboxes);
       },
       extent(state, payload) {
         state.extent = payload.extent;
@@ -60,6 +62,12 @@ export default new Vuex.Store({
       },
       loading(state, payload) {
           state.loading = payload.loading;
+      },
+      suggests(state, payload) {
+          state.mapSuggest = payload.suggests;
+      },
+      loc(state,payload)  {
+          state.loc = payload.loc;
       }
     },
     actions: {
@@ -92,6 +100,20 @@ export default new Vuex.Store({
             }, response => {
                 console.log('error occured!' + JSON.stringify(response));
             });
+        },
+
+        getSuggest (context, payload) {
+            var input = payload.input;
+            Vue.http.get(`https://api.mapy.cz/suggest/?count=5&phrase=${input}`)
+            .then(response => {
+                context.commit({ type: 'suggests', suggests: response.body.result });
+            }, response => {
+                console.log('error occured!' + JSON.stringify(response));
+            });
+        },
+
+        changeLoc (context, payload) {
+            context.commit({ type: 'loc', loc: payload.loc });
         },
 
         showPanorama(context, payload) {
