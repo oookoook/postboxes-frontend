@@ -18,7 +18,7 @@ Vue.use(VueTimers);
 Vue.use(Vuetify, {
   theme: {
     primary: colors.orange.darken1,
-    secondary: colors.orange.lighten4,
+    secondary: colors.orange.lighten5,
     accent: colors.deepPurple.base
   }
 });

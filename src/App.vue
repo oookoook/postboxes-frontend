@@ -14,16 +14,9 @@
           <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
           
           <span class="hidden-sm-and-down">{{ title }}</span></v-toolbar-title>
-      <v-text-field
-        flat
-        solo-inverted
-        prepend-icon="search"
-        label="Hledat"
-        class="hidden-sm-and-down"
-        id="search"
-      ></v-text-field>
+      <map-suggest/>
       <v-spacer></v-spacer>
-      <About />
+      <about />
   </v-toolbar>
   <v-content fluid>
     <v-container pa-0 fluid fill-height>
@@ -47,12 +40,14 @@
     import Map from './Map.vue';
     import Detail from './Detail.vue';
     import About from './About.vue';
+    import MapSuggest from './MapSuggest.vue'
     export default {
         name: 'postboxes-frontend',
         components: {
             Map,
             Detail,
-            About
+            About,
+            MapSuggest
         },
         data: function () {
             return {

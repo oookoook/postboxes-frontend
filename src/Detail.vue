@@ -64,6 +64,18 @@
 
           <v-divider inset></v-divider>
         </v-list>
+        <v-list two-lines v-else key="placeholder">
+          <v-list-tile>
+            <v-list-tile-action>
+                <v-icon color="accent">local_post_office</v-icon>
+            </v-list-tile-action>
+
+            <v-list-tile-content>
+              <v-list-tile-title>Schránka nevybrána</v-list-tile-title>
+              <v-list-tile-sub-title>Vyberte schránku z mapy...</v-list-tile-sub-title>
+            </v-list-tile-content>
+          </v-list-tile>
+        </v-list>
         </v-scroll-x-transition>
 </template>
 
