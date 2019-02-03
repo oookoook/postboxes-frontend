@@ -4,7 +4,7 @@ const path = require('path');
 
 const { VueLoaderPlugin } = require('vue-loader');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-
+const PrerenderSpaPlugin = require('prerender-spa-plugin');
 
 module.exports = {
   entry: './src/index.js',
@@ -77,6 +77,12 @@ module.exports = {
       template: 'src/index.html',
       favicon: 'assets/favicon.ico',
       inject: true
-    })
+    }),
+    new PrerenderSpaPlugin({
+      // Path to compiled app
+      staticDir: path.join(__dirname, '../dist'),
+      // List of endpoints you wish to prerender
+      routes: [ '/' ]
+    }),
   ]
 };

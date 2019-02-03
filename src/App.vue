@@ -4,7 +4,7 @@
   <v-navigation-drawer fixed clipped v-model="drawer" width="350" app>
       <iframe id="ads" :src="addsUrl" />
   </v-navigation-drawer>
-  <v-navigation-drawer fixed clipped right app>
+  <v-navigation-drawer fixed clipped right app v-model="detail">
       <detail></detail>
   </v-navigation-drawer>
   <v-toolbar app clipped-right clipped-left fixed dark color="primary">
@@ -53,16 +53,21 @@
             return {
                 title: 'Mapa poštovních schránek',
                 drawer: true,
+                detail2 : false,
                 addsUrl: require('./sklik.html'),
             }
         },
         computed: {
-                
+            detail: {
+                get () {
+                    return this.$store.state.detail;
+                },
+                set (val) {
+                    this.$store.commit({ type: 'detail', detail: val });
+                }
+            }    
         },
         methods: {
-            showDetail: function(event) {
-                var id = event;
-            }
         },
         created() {
          }
