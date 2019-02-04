@@ -5,6 +5,9 @@ const path = require('path');
 const { VueLoaderPlugin } = require('vue-loader');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const PrerenderSpaPlugin = require('prerender-spa-plugin');
+const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin');
+const Renderer = PrerenderSpaPlugin.PuppeteerRenderer;
+
 
 module.exports = {
   entry: './src/index.js',
@@ -42,6 +45,10 @@ module.exports = {
         }},
       },
       {
+        test: /\.styl$/,
+        loader: ['style-loader', 'css-loader', 'stylus-loader']
+      },
+      {
         test: /\.js$/,
         use: 'babel-loader'
       },
@@ -71,6 +78,7 @@ module.exports = {
   },
   plugins: [
     new VueLoaderPlugin(),
+    new VuetifyLoaderPlugin(),
     //new HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({
       filename: 'index.html',
@@ -80,9 +88,22 @@ module.exports = {
     }),
     new PrerenderSpaPlugin({
       // Path to compiled app
-      staticDir: path.join(__dirname, '../dist'),
+      staticDir: path.join(__dirname, 'dist'),
       // List of endpoints you wish to prerender
-      routes: [ '/' ]
+      routes: [ '/' ],
+      // Optional minification.
+      minify: {
+        collapseBooleanAttributes: true,
+        collapseWhitespace: true,
+        decodeEntities: true,
+        keepClosingSlash: true,
+        sortAttributes: true
+      },
+
+      renderer: new Renderer({
+        renderAfterDocumentEvent: 'render-event',
+        headless: false,
+      })
     }),
   ]
 };

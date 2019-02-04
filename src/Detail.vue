@@ -1,6 +1,6 @@
 <template>
     <v-scroll-x-transition mode="out-in">
-        <v-list two-lines v-if="detail" :key="detail.id">
+        <v-list two-lines v-if="detail && detail.id" :key="detail.id">
           <v-list-tile>
             <v-list-tile-action>
               <v-icon color="accent">location_on</v-icon>
