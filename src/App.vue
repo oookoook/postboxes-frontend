@@ -1,7 +1,8 @@
 <template>
   <div id="app">
 <v-app>
-  <v-navigation-drawer fixed clipped v-model="drawer" width="350" app>
+  <v-navigation-drawer class="pa-0" fixed clipped v-model="drawer" width="300" app>
+      
       <iframe id="ads" :src="addsUrl" />
   </v-navigation-drawer>
   <v-navigation-drawer fixed clipped right app v-model="detail">
@@ -75,8 +76,8 @@
 </script>
 <style scoped>
  iframe#ads {
-     width: 320px;
-     height: 620px;
+     width: 300px;
+     height: 600px;
      border:0px;
      padding:0px;
      margin:0px;
