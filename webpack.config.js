@@ -8,6 +8,7 @@ const PrerenderSpaPlugin = require('prerender-spa-plugin');
 const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin');
 const Renderer = PrerenderSpaPlugin.PuppeteerRenderer;
 
+console.log(process.env.NODE_ENV);
 
 module.exports = {
   entry: './src/index.js',
@@ -85,8 +86,8 @@ module.exports = {
       template: 'src/index.html',
       favicon: 'assets/favicon.ico',
       inject: true
-    }),
-    new PrerenderSpaPlugin({
+    })].concat(process.env.NODE_ENV === 'development' ? [] : 
+    [new PrerenderSpaPlugin({
       // Path to compiled app
       staticDir: path.join(__dirname, 'dist'),
       // List of endpoints you wish to prerender
@@ -105,5 +106,5 @@ module.exports = {
         headless: false,
       })
     }),
-  ]
+  ])
 };
