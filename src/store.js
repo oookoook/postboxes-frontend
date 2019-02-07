@@ -4,16 +4,23 @@ import Vuex from 'vuex';
 Vue.use(Vuex);
 
 
-function getNewExtent(e, o) {
-    var latDiff = e.lat.max - e.lat.min;
-    var lonDiff = e.lon.max - e.lon.min;
-    console.log(`latDiff ${latDiff} lonDiff ${lonDiff}`);
-    /*
-    if(latDiff > 0.65 
-    || lonDiff > 0.25) {
-    */ 
+function getDiff(v) {
+    return v.max - v.min;
+}
+
+function isActive(e) {
+    var latDiff = getDiff(e.lat);
+    var lonDiff = getDiff(e.lon);
    if(latDiff > 0.35 
-    || lonDiff > 0.12) {
+    || lonDiff > 0.15) {
+        // zoomed out
+        return false;
+    }
+    return true;
+}
+
+function getNewExtent(e, o) {
+   if(!isActive(e)) {
         // zoomed out - no postboxes are fetched
         e.action = 'delete';
         return e;
@@ -21,7 +28,9 @@ function getNewExtent(e, o) {
     
     // compare with existing extent
     if(e.lat.min >= o.lat.min && e.lat.max <= o.lat.max 
-        && e.lon.min >= o.lon.min && e.lon.max <= e.lon.max) {
+        && e.lon.min >= o.lon.min && e.lon.max <= e.lon.max
+        // if the old extent is inactive, we have to get the postboxes again
+        && isActive(o)) {
             // current view is within the existing extent
             // user either just zoomed in or panned just a little
             //e.action = 'none';
@@ -29,6 +38,8 @@ function getNewExtent(e, o) {
         }
 
     // we have a new extent - we will expand it a bit to prevent frequent requests when panning the map just a little bit
+    var latDiff = getDiff(e.lat);
+    var lonDiff = getDiff(e.lon);
     e.lat.min -= latDiff / 4;
     e.lat.max += latDiff / 4;
     e.lon.min -= lonDiff / 4;
@@ -75,6 +86,7 @@ export default new Vuex.Store({
             //console.log(`Lat diff: ${payload.extent.lat.max - payload.extent.lat.min} Lon diff: ${payload.extent.lon.max - payload.extent.lon.min}`);
             var e = getNewExtent(payload.extent, context.state.extent);
             if(e && e.action && e.action == 'refresh') {
+                console.log('Store: Getting new postboxes...');
                 context.commit({ type: 'loading', loading: true });
                 Vue.http.get(`https://ygytf5wc4e.execute-api.eu-central-1.amazonaws.com/latest/query/${e.lat.min}/${e.lat.max}/${e.lon.min}/${e.lon.max}/0`)
                 .then(response => {
@@ -86,7 +98,9 @@ export default new Vuex.Store({
                 });
             } else if(e.action == 'delete'){
                 // erase existing postboxes when zoomed out
+                console.log('Store: Delete action triggered on postboxes...');
                 if(context.state.postboxes.length > 0) {
+                    console.log('Store: Deleting existing postboxes.');
                     context.commit({ type: 'postboxes', postboxes: [] });
                 }
             }

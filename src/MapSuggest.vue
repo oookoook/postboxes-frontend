@@ -72,6 +72,7 @@
         methods: {
             changeLoc(event) {
                 //console.dir(this.model);
+                this.$store.dispatch({type: 'showPanorama', hide: true});
                 this.$store.dispatch({type: 'changeLoc', loc: event.value});
             },
             clearLoc(event) {

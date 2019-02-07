@@ -8,8 +8,6 @@ const PrerenderSpaPlugin = require('prerender-spa-plugin');
 const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin');
 const Renderer = PrerenderSpaPlugin.PuppeteerRenderer;
 
-console.log(process.env.NODE_ENV);
-
 module.exports = {
   entry: './src/index.js',
   output: {
