@@ -11,7 +11,7 @@ const Renderer = PrerenderSpaPlugin.PuppeteerRenderer;
 module.exports = {
   entry: './src/index.js',
   output: {
-    filename: 'main.js',
+    filename: '[name].[contenthash].js',
     path: path.resolve(__dirname, 'dist')
   },
   devServer: {
@@ -101,7 +101,7 @@ module.exports = {
 
       renderer: new Renderer({
         renderAfterDocumentEvent: 'render-event',
-        headless: false,
+        headless: true,
       })
     }),
   ])
