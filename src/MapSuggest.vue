@@ -28,7 +28,7 @@
 </template>
 
 <script>
-    
+    import { mapState } from 'vuex';
     export default {
         name: 'MapSuggest',
         components: {
@@ -36,7 +36,6 @@
         props: [],
         data: function () {
             return {
-                loading: false,
                 search: null,
                 model: null
             }
@@ -51,24 +50,14 @@
                     return;
                 }
                 console.log('Suggest fetch started...');
-                this.loading = true;
                 // do the fetch from store... run the action
                 this.$store.dispatch({type: 'getSuggest', input: val});
             }
         },
-        computed: {
-             items () {
-                 // this wil be called when the suggests in the store update
-                 this.loading = false;
-                 return this.$store.state.mapSuggest.map(i => { 
-                     return {
-                        //key: i.userData.id,
-                        text: i.userData.suggestFirstRow + ', ' + i.userData.suggestSecondRow,
-                        value: { lat: i.userData.latitude, lon: i.userData.longitude }
-                     };
-                    }); 
-             }   
-        },
+        computed: mapState({
+             items: state => state.mapSuggest,
+             loading: state => state.loading
+             }),
         methods: {
             changeLoc(event) {
                 //console.dir(this.model);

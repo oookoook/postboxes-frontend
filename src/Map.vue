@@ -2,7 +2,7 @@
   <v-flex grow id="mapWindow" xs12 d-flex child-flex p-0 m-0>
       <v-btn color="accent" dark small absolute top right fab v-if="panorama" @click="hidePanorama"><v-icon>close</v-icon></v-btn>
       <iframe v-bind:src="frameAdd" id="mapFrame"/>
-      <v-progress-linear :indeterminate="true" height="2" v-if="loading"></v-progress-linear>
+      <!-- <v-progress-linear :indeterminate="true" height="2" v-if="loading"></v-progress-linear> -->
   </v-flex>
 </template>
 

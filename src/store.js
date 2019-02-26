@@ -55,7 +55,8 @@ export default new Vuex.Store({
       mapSuggest: [],
       loc: null,
       detail: null,
-      panorama: false
+      panorama: false,
+      loading: false,
     },
     mutations: {
       postboxes(state, payload) {
@@ -118,11 +119,21 @@ export default new Vuex.Store({
 
         getSuggest (context, payload) {
             var input = payload.input;
+            context.commit({ type: 'loading', loading: true });
             Vue.http.get(`https://api.mapy.cz/suggest/?count=5&phrase=${input}`)
             .then(response => {
-                context.commit({ type: 'suggests', suggests: response.body.result });
+                var s = response.body.result.map(i => { 
+                    return {
+                       //key: i.userData.id,
+                       text: i.userData.suggestFirstRow + ', ' + i.userData.suggestSecondRow,
+                       value: { lat: i.userData.latitude, lon: i.userData.longitude }
+                    };
+                   }); 
+                context.commit({ type: 'suggests', suggests: s });
+                context.commit({ type: 'loading', loading: false });
             }, response => {
                 console.log('error occured!' + JSON.stringify(response));
+                context.commit({ type: 'loading', loading: false });
             });
         },
 
