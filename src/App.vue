@@ -9,12 +9,16 @@
       <detail></detail>
   </v-navigation-drawer>
   <v-toolbar app clipped-right clipped-left fixed dark color="primary">
-       
+      <v-toolbar-side-icon @click.stop="drawer = !drawer">
+              <v-icon>{{ drawer ? 'keyboard_arrow_left' : 'keyboard_arrow_right' }}</v-icon>
+          </v-toolbar-side-icon> 
         
-      <v-toolbar-title style="width: 400px" class="ml-0 pl-3">
-          <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+      <v-toolbar-title>
           
-          <span class="hidden-sm-and-down">{{ title }}</span></v-toolbar-title>
+          
+          <span class="hidden-sm-and-down">{{ title }}</span>
+    </v-toolbar-title>
+      <v-spacer></v-spacer>
       <map-suggest/>
       <v-spacer></v-spacer>
       <about />
