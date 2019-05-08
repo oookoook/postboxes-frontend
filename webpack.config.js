@@ -6,6 +6,7 @@ const { VueLoaderPlugin } = require('vue-loader');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const PrerenderSpaPlugin = require('prerender-spa-plugin');
 const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin');
+const SocialTags = require('social-tags-webpack-plugin');
 const Renderer = PrerenderSpaPlugin.PuppeteerRenderer;
 
 module.exports = {
@@ -84,6 +85,26 @@ module.exports = {
       template: 'src/index.html',
       favicon: 'assets/favicon.ico',
       inject: true
+    }),
+    new SocialTags({
+      appUrl: 'https://schranky.nastojte.cz/',
+      facebook: {
+        'og:url': "https://schranky.nastojte.cz/",
+        'og:type': "website",
+        'og:title': "Mapa poštovních schránek",
+        'og:image': './assets/favicon.png',
+        'og:description': "Mapa poštovních schránek v ČR. Najděte snadno nejbližší poštovní schránku. Využívá data zveřejňovaná Českou poštou a podklady Mapy.cz včetně virtuální procházky.",
+        'og:site_name': "Mapa poštovních schránek",
+        'og:locale': "cs_CZ",
+        'og:article:author': "Adam Kučera",
+      },
+      twitter: {
+        "twitter:card": "Mapa poštovních schránek",
+        "twitter:url": "https://schranky.nastojte.cz/",
+        "twitter:title": "Mapa poštovních schránek",
+        "twitter:description": "Mapa poštovních schránek v ČR. Najděte snadno nejbližší poštovní schránku. Využívá data zveřejňovaná Českou poštou a podklady Mapy.cz včetně virtuální procházky.",
+        "twitter:image": './assets/favicon.png'
+      },
     })].concat(process.env.NODE_ENV === 'development' ? [] : 
     [new PrerenderSpaPlugin({
       // Path to compiled app
