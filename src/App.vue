@@ -15,7 +15,6 @@
         
       <v-toolbar-title>
           
-          
           <span class="hidden-sm-and-down">{{ title }}</span>
     </v-toolbar-title>
       <v-spacer></v-spacer>

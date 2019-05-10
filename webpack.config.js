@@ -9,6 +9,8 @@ const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin');
 const SocialTags = require('social-tags-webpack-plugin');
 const Renderer = PrerenderSpaPlugin.PuppeteerRenderer;
 
+const config = require('./src/config.js');
+
 module.exports = {
   entry: './src/index.js',
   output: {
@@ -82,35 +84,20 @@ module.exports = {
     //new HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({
       filename: 'index.html',
-      template: 'src/index.html',
+      template: 'src/index.ejs',
       favicon: 'assets/favicon.ico',
+      title: config.title,
+      lang: config.lang,
+      meta: config.meta,
       inject: true
     }),
-    new SocialTags({
-      appUrl: 'https://schranky.nastojte.cz/',
-      facebook: {
-        'og:url': "https://schranky.nastojte.cz/",
-        'og:type': "website",
-        'og:title': "Mapa poštovních schránek",
-        'og:image': './assets/favicon.png',
-        'og:description': "Mapa poštovních schránek v ČR. Najděte snadno nejbližší poštovní schránku. Využívá data zveřejňovaná Českou poštou a podklady Mapy.cz včetně virtuální procházky.",
-        'og:site_name': "Mapa poštovních schránek",
-        'og:locale': "cs_CZ",
-        'og:article:author': "Adam Kučera",
-      },
-      twitter: {
-        "twitter:card": "Mapa poštovních schránek",
-        "twitter:url": "https://schranky.nastojte.cz/",
-        "twitter:title": "Mapa poštovních schránek",
-        "twitter:description": "Mapa poštovních schránek v ČR. Najděte snadno nejbližší poštovní schránku. Využívá data zveřejňovaná Českou poštou a podklady Mapy.cz včetně virtuální procházky.",
-        "twitter:image": './assets/favicon.png'
-      },
-    })].concat(process.env.NODE_ENV === 'development' ? [] : 
+    new SocialTags(config.social)
+  ].concat(process.env.NODE_ENV === 'development' ? [] : 
     [new PrerenderSpaPlugin({
       // Path to compiled app
       staticDir: path.join(__dirname, 'dist'),
       // List of endpoints you wish to prerender
-      routes: [ '/' ],
+      routes: config.routesToPrerender,
       // Optional minification.
       minify: {
         collapseBooleanAttributes: true,
