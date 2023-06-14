@@ -120,7 +120,7 @@ export default new Vuex.Store({
         getSuggest (context, payload) {
             var input = payload.input;
             context.commit({ type: 'loading', loading: true });
-            Vue.http.get(`https://api.mapy.cz/suggest/?count=5&phrase=${input}`)
+            Vue.http.get(`https://api.mapy.cz/v0/suggest/?count=5&phrase=${input}`)
             .then(response => {
                 var s = response.body.result.map(i => { 
                     return {
