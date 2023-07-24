@@ -56,7 +56,7 @@
         data: function () {
             return {
                 title: 'Mapa poštovních schránek',
-                drawer: true,
+                drawer: false,
                 detail2 : false,
                 addsUrl: require('./sklik.html'),
             }
