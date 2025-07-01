@@ -1,0 +1,20 @@
+{
+  "name": "Node 16 Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:16",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+      },
+      "extensions": [
+        "octref.vetur"
+      ]
+    }
+  },
+  "postCreateCommand": "npm install",
+  "forwardPorts": [8080],
+  "remoteUser": "node"
+}

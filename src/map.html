@@ -9,19 +9,18 @@
     <meta name="description" content="Map window">
     <meta name="author" content="Adam Kučera">
 
-    <script src="https://api.mapy.cz/loader.js"></script>
-    <script>
-        Loader.load(null, {suggest: true, pano: true});
-    </script>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
     html, body {
         height: 100%;
         margin: 0; 
-        padding: 0;  /* to avoid scrollbars */
+        padding: 0;
     }
 
     #wrapper {
-        display: flex;  /* use the flex model */
+        display: flex;
         min-height: 100%;
         flex-direction: column;
         margin: 0; 
@@ -38,6 +37,10 @@
         padding: 0;
     }
 
+    #map {
+        width: 100%;
+        height: 100vh;
+    }
     </style>
 </head>
 
@@ -47,81 +50,106 @@
     <div id="map" class="visible"></div>
     </div>
     <script>
+        // Mapy.cz REST API raster tiles URL template
+        // See https://developer.mapy.com/rest-api/funkce/mapove-dlazdice/
+        // Replace 'your-api-key' with your actual API key if needed
+        const MAPY_CZ_TILE_URL = 'https://mapserver.mapy.cz/base-m/{z}-{x}-{y}';
+
         var MapProxy = {
             map: null,
             markerLayer: null,
-            panoramaScene: null,
+            markers: {},
             zoom: 14,
-            locMarkerOptions: {
-                url: SMap.CONFIG.img+"/marker/drop-red.png"
-            },
-            locMarker: false,
-            postboxMarkerOptions: {}, 
+            clickHandler: null,
+            locMarker: null, // store the user location marker
 
-            mapClick: function (signal) {
-                var event = signal.data.event;
-                var coords = SMap.Coords.fromEvent(event, this.MapProxy.map);
-                if (this.MapProxy.clickHandler) {
-                    this.clickHandler(coords);
+            loadMap: function(loc) {
+                var center = [50.08, 14.41]; // Prague default [lat, lon]
+                var zoom = 10;
+                if (loc) {
+                    center = [loc.lat, loc.lon];
+                    zoom = this.zoom;
                 }
-            },
-            getExtent: function() {
-                var vp = this.map.getViewport();
-                //console.log(map.getZoom());
-                return {
-                    lon: { min: Math.min(vp.lbx, vp.rtx), max: Math.max(vp.lbx, vp.rtx) },
-                    lat: { min: Math.min(vp.lby, vp.rty), max: Math.max(vp.lby, vp.rty) },
-                };
-            },
-            changeExtent: function () {
-                if (this.MapProxy.extentHandler) {
-                    this.MapProxy.extentHandler(this.MapProxy.getExtent());
-                }
-            },
-            markerClick: function (signal) {
-                var marker = signal.target;
-                var id = marker.getId();
-                if(id == 'userLoc') {
-                    return;
-                }
-                if (this.MapProxy.markerClickHandler) {
-                    this.MapProxy.markerClickHandler(id);
-                }
-            },
+                this.map = L.map('map').setView(center, zoom);
 
-            removeMarkers: function() {
-                this.markerLayer.removeAll();
-                this.addLocMarker();
-            },
+                // Mapy.cz raster tiles as Leaflet layer
+                L.tileLayer(MAPY_CZ_TILE_URL, {
+                    attribution: '<a href="https://mapy.cz/">© Seznam.cz, a.s. 2024</a>',
+                    maxZoom: 19,
+                    tileSize: 256,
+                    // You may need to add your API key as a query param if required
+                }).addTo(this.map);
 
-            addMarkers: function(markers) {
-                var t = this;
-                markers.forEach(m => {
-                    var marker = new SMap.Marker(SMap.Coords.fromWGS84(m.lon, m.lat), m.id, t.postboxMarkerOptions);
-                    marker.getContainer()[SMap.LAYER_MARKER].style.cursor = "pointer";
-                    t.markerLayer.addMarker(marker);
+                this.markerLayer = L.layerGroup().addTo(this.map);
+
+                // Map click handler
+                this.map.on('click', (e) => {
+                    if (this.clickHandler) {
+                        // e.latlng: {lat, lng}
+                        this.clickHandler({lat: e.latlng.lat, lon: e.latlng.lng});
+                    }
                 });
             },
 
-            addLocMarker: function() {
-                if(this.locMarker) {
-                    this.markerLayer.addMarker(this.locMarker);
+            addMarkers: function(markers) {
+                // markers: [{id, lat, lon}]
+                const iconUrl = this.postboxMarkerOptions && this.postboxMarkerOptions.url
+                    ? this.postboxMarkerOptions.url
+                    : undefined;
+                let icon = undefined;
+                if (iconUrl) {
+                    icon = L.icon({
+                        iconUrl: iconUrl,
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34],
+                        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+                        shadowSize: [41, 41]
+                    });
                 }
+                markers.forEach(m => {
+                    var marker = L.marker([m.lat, m.lon], icon ? {icon} : undefined).addTo(this.markerLayer);
+                    marker._customId = m.id;
+                    marker.on('click', () => {
+                        if (this.markerClickHandler) {
+                            this.markerClickHandler(m.id);
+                        }
+                    });
+                    this.markers[m.id] = marker;
+                });
             },
 
-            removeLocMarker: function() {
-                this.markerLayer.removeMarker(this.locMarker);
-                this.locMarker = null;
-                
+            removeMarkers: function() {
+                this.markerLayer.clearLayers();
+                this.markers = {};
             },
 
             setExtent: function(loc, showMarker) {
-                var center = SMap.Coords.fromWGS84(loc.lon, loc.lat);
-                this.map.setCenterZoom(center, this.zoom);
-                if(showMarker && this.markerLayer) {
-                    this.locMarker = new SMap.Marker(SMap.Coords.fromWGS84(loc.lon, loc.lat), 'loc', this.locMarkerOptions);
-                    this.addLocMarker();
+                this.map.setView([loc.lat, loc.lon], this.zoom);
+                if (showMarker) {
+                    this.removeMarkers();
+                    this.addMarkers([{id: 'loc', lat: loc.lat, lon: loc.lon}]);
                 }
+            },
+
+            getExtent: function() {
+                var b = this.map.getBounds();
+                return {
+                    lon: { min: b.getWest(), max: b.getEast() },
+                    lat: { min: b.getSouth(), max: b.getNorth() }
+                };
+            },
+
+            markerClickHandler: null,
+            extentHandler: null,
+
+            // Listen to map moveend for extent changes
+            enableExtentEvents: function() {
+                this.map.on('moveend', () => {
+                    if (this.extentHandler) {
+                        this.extentHandler(this.getExtent());
+                    }
+                });
             },
 
             toggleVisible: function(el, visible) {
@@ -137,66 +165,56 @@
 
             showPanorama: function(loc) {
                 var t = this;
-                return new Promise(function(resolve) {
-                t.toggleVisible(document.querySelector('#map'), false);
-                var el = document.querySelector('#panorama');
-                t.toggleVisible(el, true);
-                if(!t.panoramaScene) {
-                    t.panoramaScene = new SMap.Pano.Scene(el);
-                }
-                // kolem teto pozice chceme nejblizsi panorama
-                var position = SMap.Coords.fromWGS84(loc.lon, loc.lat);
-                SMap.Pano.getBest(position, 50).then(function(place) {
-                    t.panoramaScene.show(place);
-                    resolve(true);
-                }, function() {
-                    resolve(false);
+                return new Promise(async function(resolve) {
+                    t.toggleVisible(document.querySelector('#map'), false);
+                    var el = document.querySelector('#panorama');
+                    t.toggleVisible(el, true);
+                    const container = document.querySelector("#panorama");
+                    const panoData = await Panorama.panoramaFromPosition({
+                        parent: container,
+                        // WGS84 lon/lat
+                        lon: loc.lon,
+                        lat: loc.lat,   
+                        // api key
+                        apiKey: "eyJpIjoyNTcsImMiOjE2Njc0ODU2MjN9.c_UlvdpHGTI_Jb-TNMYlDYuIkCLJaUpi911RdlwPsAY",
+                        // show navigation - pano neighbors, click mask
+                        showNavigation: true,
+                    });
+                    resolve();
                 });
-            });
             },
 
             hidePanorama: function() {
                 this.toggleVisible(document.querySelector('#map'), true);
                 this.toggleVisible(document.querySelector('#panorama'), false);
             },
-            
-            clickHandler: null,
-            extentHandler: null,
-            markerClickHandler: null,
 
-            loadMap: function(loc) {
-                // default is Prague
-                var center = SMap.Coords.fromWGS84(14.41, 50.08);
-                var zoom = 10;
-                if(loc) {
-                    center = SMap.Coords.fromWGS84(loc.lon, loc.lat);
-                    zoom = this.zoom;
+            addLocMarker: function(loc) {
+                // Remove previous locMarker if exists
+                if (this.locMarker) {
+                    this.markerLayer.removeLayer(this.locMarker);
+                    this.locMarker = null;
                 }
-                this.map = new SMap(JAK.gel("map"), center, zoom);
-                this.map.addDefaultControls();
-                var mouse = new SMap.Control.Mouse(SMap.MOUSE_PAN | SMap.MOUSE_WHEEL | SMap.MOUSE_ZOOM);
-                this.map.addControl(mouse); 
-                this.map.addDefaultLayer(SMap.DEF_BASE).enable();
-                this.markerLayer = new SMap.Layer.Marker();
-                this.map.addLayer(this.markerLayer);
-                this.markerLayer.enable();
-                /*
-                if(loc) {
-                    this.markerLayer.addMarker(new SMap.Marker(center, "userLoc", this.locMarkerOptions));
+                // Use a blue marker icon for user location
+                const blueIcon = L.icon({
+                    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x-blue.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+                    shadowSize: [41, 41]
+                });
+                this.locMarker = L.marker([loc.lat, loc.lon], {icon: blueIcon, zIndexOffset: 1000}).addTo(this.markerLayer);
+            },
+
+            removeLocMarker: function() {
+                if (this.locMarker) {
+                    this.markerLayer.removeLayer(this.locMarker);
+                    this.locMarker = null;
                 }
-                */
-                var sync = new SMap.Control.Sync({bottomSpace:0});
-                this.map.addControl(sync);
-                var signals = this.map.getSignals();
-                signals.addListener(window, "map-click", this.mapClick);
-                signals.addListener(window, "marker-click", this.markerClick);
-                signals.addListener(window, "map-redraw", this.changeExtent);
-                // sends event to the Vue - loads the first postboxes
-                if (this.extentHandler) {
-                    this.extentHandler(this.getExtent());
-                }
-            }
+            },
         };
+
         document.MapProxy = MapProxy;
     </script>
 </body>
