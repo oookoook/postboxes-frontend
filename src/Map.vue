@@ -38,6 +38,7 @@
             loc: function(loc) {
                 if(loc) {
                     this.mp.setExtent(loc, true);
+                    //this.mp.addLocMarker(loc);
                 } else {
                     this.mp.removeLocMarker();
                 }
@@ -60,6 +61,7 @@
                 if(mapDoc.location.href.indexOf(this.frameAdd) > -1 && mapDoc.readyState  == 'complete' ) {
                    this.$timer.stop('mapLoadCheck');
                    this.mp = mapDoc.MapProxy;
+                   this.mp.apiKey = this.$store.state.apiKey;
                    this.mp.extentHandler = this.getPostboxes;
                    this.mp.markerClickHandler = this.getInfo;
                    this.mp.postboxMarkerOptions = { url: require('../assets/postbox_icon.svg')};
@@ -90,6 +92,7 @@
                         this.geoloc = loc;
                     } else {
                         this.mp.setExtent(loc);
+                        //this.mp.addLocMarker(loc);
                     }
                 });
             }

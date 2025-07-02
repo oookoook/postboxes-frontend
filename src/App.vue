@@ -9,9 +9,9 @@
       <detail></detail>
   </v-navigation-drawer>
   <v-toolbar app clipped-right clipped-left fixed dark color="primary">
-      <v-toolbar-side-icon @click.stop="drawer = !drawer">
+     <!--  <v-toolbar-side-icon @click.stop="drawer = !drawer">
               <v-icon>{{ drawer ? 'keyboard_arrow_left' : 'keyboard_arrow_right' }}</v-icon>
-          </v-toolbar-side-icon> 
+          </v-toolbar-side-icon>  -->
         
       <v-toolbar-title>
           
@@ -32,7 +32,7 @@
   <v-footer app color="secondary">
       <v-layout justify-center row wrap>
         <v-flex secondary pa-2 text-xs-center xs12>
-            &copy;2019, <a href="https://nastojte.cz">Adam Kučera</a>
+            &copy;2019-2025, <a href="https://nastojte.cz">Adam Kučera</a>
         </v-flex>
       </v-layout>
     </v-footer>

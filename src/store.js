@@ -51,6 +51,7 @@ function getNewExtent(e, o) {
 export default new Vuex.Store({
     state: {
       extent: { lat: { min: 0, max: 0}, lon: { min: 0, max: 0}},
+      apiKey: 'JyMRqDCm6CgBpfzOW-g7RNCB7n1b9weF0y-4xbPwBxo',
       postboxes: [],
       mapSuggest: [],
       loc: null,
@@ -120,13 +121,23 @@ export default new Vuex.Store({
         getSuggest (context, payload) {
             var input = payload.input;
             context.commit({ type: 'loading', loading: true });
-            Vue.http.get(`https://api.mapy.cz/v0/suggest/?count=5&phrase=${input}`)
+            /*
+            const fetchData = await fetch(`https://api.mapy.cz/v1/suggest?lang=cs&limit=5&type=regional.address&apikey=${API_KEY}&query=${query}`);
+            const jsonData = await fetchData.json();
+            // map values to { value, data }
+            const items = jsonData.items.map(item => ({
+            value: item.name,
+            data: item,
+            }));
+            */
+            
+            Vue.http.get(`https://api.mapy.cz/v1/suggest?lang=cs&limit=5&type=regional.address&apikey=${context.state.apiKey}&query=${input}`)
             .then(response => {
-                var s = response.body.result.map(i => { 
+                var s = response.body.items.map(i => { 
                     return {
                        //key: i.userData.id,
-                       text: i.userData.suggestFirstRow + ', ' + i.userData.suggestSecondRow,
-                       value: { lat: i.userData.latitude, lon: i.userData.longitude }
+                       text: `${i.name}, ${i.location} - ${i.label}`,
+                       value: i.position
                     };
                    }); 
                 context.commit({ type: 'suggests', suggests: s });

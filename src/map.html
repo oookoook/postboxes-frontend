@@ -12,6 +12,7 @@
     <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="text/javascript" src='https://api.mapy.com/js/panorama/v1/panorama.js'></script>
     <style>
     html, body {
         height: 100%;
@@ -22,6 +23,7 @@
     #wrapper {
         display: flex;
         min-height: 100%;
+        max-height: 100%;
         flex-direction: column;
         margin: 0; 
         padding: 0;
@@ -53,9 +55,11 @@
         // Mapy.cz REST API raster tiles URL template
         // See https://developer.mapy.com/rest-api/funkce/mapove-dlazdice/
         // Replace 'your-api-key' with your actual API key if needed
-        const MAPY_CZ_TILE_URL = 'https://mapserver.mapy.cz/base-m/{z}-{x}-{y}';
+        const API_KEY = 'JyMRqDCm6CgBpfzOW-g7RNCB7n1b9weF0y-4xbPwBxo'
+        const MAPY_CZ_TILE_URL = 'https://api.mapy.com/v1/maptiles/outdoor/256/{z}/{x}/{y}?apikey=';
 
         var MapProxy = {
+            apiKey: null,
             map: null,
             markerLayer: null,
             markers: {},
@@ -71,9 +75,9 @@
                     zoom = this.zoom;
                 }
                 this.map = L.map('map').setView(center, zoom);
-
+                console.debug('Map initialized at', center, 'with zoom', zoom, 'adding tile layer', MAPY_CZ_TILE_URL, 'api key', this.apiKey);
                 // Mapy.cz raster tiles as Leaflet layer
-                L.tileLayer(MAPY_CZ_TILE_URL, {
+                L.tileLayer(MAPY_CZ_TILE_URL + this.apiKey, {
                     attribution: '<a href="https://mapy.cz/">© Seznam.cz, a.s. 2024</a>',
                     maxZoom: 19,
                     tileSize: 256,
@@ -89,6 +93,14 @@
                         this.clickHandler({lat: e.latlng.lat, lon: e.latlng.lng});
                     }
                 });
+                this.map.on('moveend', () => {
+                    if (this.extentHandler) {
+                        this.extentHandler(this.getExtent());
+                    }
+                });
+                if (this.extentHandler) {
+                    this.extentHandler(this.getExtent());
+                }
             },
 
             addMarkers: function(markers) {
@@ -103,10 +115,11 @@
                         iconSize: [25, 41],
                         iconAnchor: [12, 41],
                         popupAnchor: [1, -34],
-                        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+                        //shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
                         shadowSize: [41, 41]
                     });
                 }
+                console.debug('Adding markers', markers, 'with icon', iconUrl);
                 markers.forEach(m => {
                     var marker = L.marker([m.lat, m.lon], icon ? {icon} : undefined).addTo(this.markerLayer);
                     marker._customId = m.id;
@@ -142,15 +155,7 @@
 
             markerClickHandler: null,
             extentHandler: null,
-
-            // Listen to map moveend for extent changes
-            enableExtentEvents: function() {
-                this.map.on('moveend', () => {
-                    if (this.extentHandler) {
-                        this.extentHandler(this.getExtent());
-                    }
-                });
-            },
+            panoData: null,
 
             toggleVisible: function(el, visible) {
                 var a = 'visible';
@@ -170,13 +175,13 @@
                     var el = document.querySelector('#panorama');
                     t.toggleVisible(el, true);
                     const container = document.querySelector("#panorama");
-                    const panoData = await Panorama.panoramaFromPosition({
+                    t.panoData = await Panorama.panoramaFromPosition({
                         parent: container,
                         // WGS84 lon/lat
                         lon: loc.lon,
                         lat: loc.lat,   
                         // api key
-                        apiKey: "eyJpIjoyNTcsImMiOjE2Njc0ODU2MjN9.c_UlvdpHGTI_Jb-TNMYlDYuIkCLJaUpi911RdlwPsAY",
+                        apiKey: t.apiKey,
                         // show navigation - pano neighbors, click mask
                         showNavigation: true,
                     });
@@ -185,6 +190,10 @@
             },
 
             hidePanorama: function() {
+                if(this.panoData?.destroy) {
+                    this.panoData.destroy();
+                    this.panoData = null;
+                }
                 this.toggleVisible(document.querySelector('#map'), true);
                 this.toggleVisible(document.querySelector('#panorama'), false);
             },
@@ -204,6 +213,7 @@
                     shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
                     shadowSize: [41, 41]
                 });
+                console.debug('Adding user location marker at', loc);
                 this.locMarker = L.marker([loc.lat, loc.lon], {icon: blueIcon, zIndexOffset: 1000}).addTo(this.markerLayer);
             },
 
