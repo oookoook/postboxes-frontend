@@ -83,6 +83,33 @@
                     tileSize: 256,
                     // You may need to add your API key as a query param if required
                 }).addTo(this.map);
+                
+                /*
+                We also require you to include our logo somewhere over the map.
+                We create our own map control implementing a documented interface,
+                that shows a clickable logo.
+                See https://leafletjs.com/reference.html#control
+                */
+                const LogoControl = L.Control.extend({
+                options: {
+                position: 'bottomleft',
+                },
+
+                onAdd: function (map) {
+                const container = L.DomUtil.create('div');
+                const link = L.DomUtil.create('a', '', container);
+
+                link.setAttribute('href', 'http://mapy.com/');
+                link.setAttribute('target', '_blank');
+                link.innerHTML = '<img src="https://api.mapy.com/img/api/logo.svg" />';
+                L.DomEvent.disableClickPropagation(link);
+
+                return container;
+                },
+                });
+
+                // finally we add our LogoControl to the map
+                new LogoControl().addTo(map);
 
                 this.markerLayer = L.layerGroup().addTo(this.map);
 
